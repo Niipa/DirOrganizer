@@ -40,7 +40,7 @@ import java.util.regex.*;
 
  */
 
-public class DirOrganizer{
+public class Organizer {
 
   public static void main(String args[]){
 
