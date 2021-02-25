@@ -1,48 +1,22 @@
-/*********************************************************************************
-    The MIT License (MIT)
-
-    Copyright (c) 2015 Menard Z. Soliven
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE.
-**********************************************************************************/
-
 package niipa;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.regex.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-/*
-
-  Some notes:
-  1. Translator groups usually have their files named as such:
-   [<GroupName>] <Name> - <Two digit episode number> [<Quality>]<file extension>. Where
-   the brackets are literals. This module works on this assumption and will break if this format
-   for shows is not followed.
-
-  2. I must've been really bored to make this.
-
+/**
+ * Organizes a download directory.
+ *
+ * For personal use.
  */
+public class Organizer{
 
-public class Organizer {
-
-  public static void main(String args[]){
+  public static void main(String args[]) throws IOException{
 
     if(args.length != 1){
       System.err.println("Usage: DirOrganizer [Path]");
@@ -62,12 +36,11 @@ public class Organizer {
     HashMap<String, File> hmDirectories = new HashMap(arrFiles.length);
 
 
-    Pattern pat1 = Pattern.compile("\\[.*?\\]_?.* - \\d{2} \\[.*\\](\\.mkv|\\.mp4)"),
+    Pattern pat1 = Pattern.compile("\\[.*?\\].*?-[_\\s]\\d{1,2}(?:v\\d{1})?[_\\s][\\(\\[].*\\](\\.mkv|\\.mp4)"),
             pat2 = Pattern.compile("\\[.*?\\]_?"),
-            pat3 = Pattern.compile(" - \\d{2}");
+            pat3 = Pattern.compile("[_\s]-[_\s]\\d{2}");
     Matcher mat;
-    String strProcessedFileName,
-           strFName;
+    String strFName;
 
     for(int itr = 0; itr < arrFiles.length; ++itr){
 
@@ -126,23 +99,26 @@ public class Organizer {
 
   // Take a abstract file name moveFrom and move it to directory moveTo.
   // moveFrom may be a directory or file.
-  private static void moveFiles(File moveTo, File moveFrom){
-
+  private static void moveFiles(File moveTo, File moveFrom) throws IOException {
     File files[] = moveFrom.listFiles();
-    String strMoveTo = moveTo.getName(),
-           strMoveFrom = moveFrom.getName();
+    String strMoveTo = moveTo.getName(), strMoveFrom = moveFrom.getName();
 
     // If moveFrom is a directory
     if(files != null) {
       for (File file : files) {
-        file.renameTo(new File(moveTo + File.separator + file.getName()));
+        Files.move(file.toPath(), moveTo.toPath());
         System.out.println(strMoveFrom + " moved to " + strMoveTo + ".");
       }
-    }
-    // else moveFrom is not a directory.
-    else{
-      moveFrom.renameTo(new File(moveTo + File.separator + moveFrom.getName()));
-      System.out.println(strMoveFrom + " moved to " + strMoveTo + ".");
+    } else{
+      Path moveToPath = moveTo.toPath().resolve(moveFrom.toString());
+      if (!moveToPath.toFile().exists()) {
+        Files.move(moveFrom.toPath(), moveTo.toPath());
+        System.out.println(strMoveFrom + " moved to " + strMoveTo + ".");
+      } else {
+        Path source = moveFrom.toPath();
+        Files.move(source, Paths.get(source.getRoot().toString(), "duplicates", source.getFileName().toString()));
+        System.out.printf("Moved %s to duplicate folder%n", strMoveFrom);
+      }
     }
   }
 }
