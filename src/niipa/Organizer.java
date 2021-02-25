@@ -77,6 +77,8 @@ public class Organizer{
 
           //strip leading and trailing whitespace.
           strFName = strFName.trim();
+          //strip periods in the name because directories cannot have periods in the name
+          strFName = strFName.replaceAll("\\.", "");
 
           //If we've seen this directory before, put this file in the directory.
           if(hmDirectories.containsKey(strFName)){
@@ -110,9 +112,9 @@ public class Organizer{
         System.out.println(strMoveFrom + " moved to " + strMoveTo + ".");
       }
     } else{
-      Path moveToPath = moveTo.toPath().resolve(moveFrom.toString());
+      Path moveToPath = moveTo.toPath().resolve(moveFrom.getName());
       if (!moveToPath.toFile().exists()) {
-        Files.move(moveFrom.toPath(), moveTo.toPath());
+        Files.move(moveFrom.toPath(), moveToPath);
         System.out.println(strMoveFrom + " moved to " + strMoveTo + ".");
       } else {
         Path source = moveFrom.toPath();
