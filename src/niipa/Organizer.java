@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,62 +24,62 @@ public class Organizer{
       System.exit(1);
     }
 
-    File objF = new File(args[0]);
+    File src = new File(args[0]);
 
     try {
-      objF.exists();
+      src.exists();
     } catch(SecurityException ex) {
       System.err.println("No read access.");
       System.exit(2);
     }
 
-    File arrFiles[] = objF.listFiles();
-    HashMap<String, File> hmDirectories = new HashMap(arrFiles.length);
+    File allFiles[] = Objects.requireNonNull(src.listFiles());
+    HashMap<String, File> hmDirectories = new HashMap(allFiles.length);
 
 
-    Pattern pat1 = Pattern.compile("\\[.*?\\].*?-[_\\s]\\d{1,2}(?:v\\d{1})?[_\\s][\\(\\[].*\\](\\.mkv|\\.mp4)"),
-            pat2 = Pattern.compile("\\[.*?\\]_?"),
-            pat3 = Pattern.compile("[_\s]-[_\s]\\d{2}");
+    Pattern entireName = Pattern.compile("\\[.*?\\].*?-[_\\s]\\d{1,2}(?:v\\d{1})?[_\\s][\\(\\[].*\\](\\.mkv|\\.mp4)"),
+            group = Pattern.compile("\\[.*?\\]_?"),
+            episode = Pattern.compile("[_\s]-[_\s]\\d{2}");
     Matcher mat;
-    String strFName;
+    String series;
 
-    for (int itr = 0; itr < arrFiles.length; ++itr) {
-      strFName = arrFiles[itr].getName();
-      if (arrFiles[itr].isDirectory()) {
-        if (hmDirectories.containsKey(strFName)) {
-          moveFiles(hmDirectories.get(strFName), arrFiles[itr]);
+    for (int itr = 0; itr < allFiles.length; ++itr) {
+      series = allFiles[itr].getName();
+      if (allFiles[itr].isDirectory()) {
+        if (hmDirectories.containsKey(series)) {
+          moveFiles(hmDirectories.get(series), allFiles[itr]);
         } else {
-          hmDirectories.put(strFName, arrFiles[itr]);
+          hmDirectories.put(series, allFiles[itr]);
         }
       } else {
-        //Get a matcher object for this new filename.
-        mat = pat1.matcher(strFName);
+        //Get a matcher object for this new entireName.
+        mat = entireName.matcher(series);
         if(mat.matches()){
 
           //strip the [<GroupName>] block
-          mat = pat2.matcher(strFName);
+          mat = group.matcher(series);
           mat.find();
-          strFName = strFName.substring(mat.end());
+          series = series.substring(mat.end());
 
           //strip everything past the <Name> block
-          mat = pat3.matcher(strFName);
+          mat = episode.matcher(series);
           mat.find();
-          strFName = strFName.substring(0, mat.start());
+          series = series.substring(0, mat.start());
 
           //strip leading and trailing whitespace.
-          strFName = strFName.trim();
+          series = series.trim();
           //strip periods in the name because directories cannot have periods in the name
-          strFName = strFName.replaceAll("\\.", "");
+          series = series.replaceAll("\\.", "");
 
           //If we've seen this directory before, put this file in the directory.
-          if (hmDirectories.containsKey(strFName)) {
-            moveFiles(hmDirectories.get(strFName), arrFiles[itr]);
+          if (hmDirectories.containsKey(series)) {
+            moveFiles(hmDirectories.get(series), allFiles[itr]);
           } else {
-            File fMoveHere = new File(args[0] + "/" + strFName);
+            File fMoveHere = new File(args[0] + "/" + series);
             fMoveHere.mkdir();
 
-            moveFiles(fMoveHere, arrFiles[itr]);
-            hmDirectories.put(strFName, fMoveHere);
+            moveFiles(fMoveHere, allFiles[itr]);
+            hmDirectories.put(series, fMoveHere);
 
           }
         }
