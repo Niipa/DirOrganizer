@@ -18,16 +18,16 @@ public class Organizer{
 
   public static void main(String args[]) throws IOException{
 
-    if(args.length != 1){
+    if(args.length != 1) {
       System.err.println("Usage: DirOrganizer [Path]");
       System.exit(1);
     }
 
     File objF = new File(args[0]);
 
-    try{
+    try {
       objF.exists();
-    }catch(SecurityException ex){
+    } catch(SecurityException ex) {
       System.err.println("No read access.");
       System.exit(2);
     }
@@ -42,28 +42,18 @@ public class Organizer{
     Matcher mat;
     String strFName;
 
-    for(int itr = 0; itr < arrFiles.length; ++itr){
-
+    for (int itr = 0; itr < arrFiles.length; ++itr) {
       strFName = arrFiles[itr].getName();
-
-      if(arrFiles[itr].isDirectory()){
-
-        if(hmDirectories.containsKey(strFName)){
+      if (arrFiles[itr].isDirectory()) {
+        if (hmDirectories.containsKey(strFName)) {
           moveFiles(hmDirectories.get(strFName), arrFiles[itr]);
-        }
-        else{
+        } else {
           hmDirectories.put(strFName, arrFiles[itr]);
         }
-      }
-      else{
+      } else {
         //Get a matcher object for this new filename.
         mat = pat1.matcher(strFName);
-        //Is this an mkv or mp4?
         if(mat.matches()){
-
-          //Logic to extract the actual name, may be a good idea to wrap this
-          //logic within its own method. Do we need to check that this file is valid
-          //before extracting the name or can we extract the name while checking validation?
 
           //strip the [<GroupName>] block
           mat = pat2.matcher(strFName);
@@ -81,12 +71,9 @@ public class Organizer{
           strFName = strFName.replaceAll("\\.", "");
 
           //If we've seen this directory before, put this file in the directory.
-          if(hmDirectories.containsKey(strFName)){
+          if (hmDirectories.containsKey(strFName)) {
             moveFiles(hmDirectories.get(strFName), arrFiles[itr]);
-          }
-          //Otherwise create a directory and put this file into that directory.
-          else{
-
+          } else {
             File fMoveHere = new File(args[0] + "/" + strFName);
             fMoveHere.mkdir();
 
@@ -106,12 +93,12 @@ public class Organizer{
     String strMoveTo = moveTo.getName(), strMoveFrom = moveFrom.getName();
 
     // If moveFrom is a directory
-    if(files != null) {
+    if (files != null) {
       for (File file : files) {
         Files.move(file.toPath(), moveTo.toPath());
         System.out.println(strMoveFrom + " moved to " + strMoveTo + ".");
       }
-    } else{
+    } else {
       Path moveToPath = moveTo.toPath().resolve(moveFrom.getName());
       if (!moveToPath.toFile().exists()) {
         Files.move(moveFrom.toPath(), moveToPath);
