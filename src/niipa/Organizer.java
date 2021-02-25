@@ -22,7 +22,7 @@
     THE SOFTWARE.
 **********************************************************************************/
 
-package generics.ren;
+package niipa;
 
 import java.io.File;
 import java.util.HashMap;
